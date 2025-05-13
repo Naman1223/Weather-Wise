@@ -7,7 +7,7 @@ import { fetchWeatherData } from '@/lib/weather-api';
 import type { WeatherData, CitySuggestion } from '@/types/weather';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { useToast } from "@/hooks/use-toast";
-import { WifiOff, CloudSun } from 'lucide-react'; // Using CloudSun as a generic weather icon
+import { WifiOff, CloudSun } from 'lucide-react';
 
 export default function HomePage() {
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
@@ -16,28 +16,32 @@ export default function HomePage() {
   const [selectedCityName, setSelectedCityName] = useState<string | null>(null);
   const { toast } = useToast();
 
-  // Check for API key on mount
   useEffect(() => {
-    if (!process.env.NEXT_PUBLIC_OPENWEATHERMAP_API_KEY) {
+    if (!process.env.NEXT_PUBLIC_WEATHERAPI_COM_API_KEY) {
+      const apiKeyErrorMsg = "WeatherAPI.com API key is not configured. Please set NEXT_PUBLIC_WEATHERAPI_COM_API_KEY in your environment variables.";
       toast({
         variant: "destructive",
         title: "API Key Missing",
-        description: "OpenWeatherMap API key is not configured. Please set NEXT_PUBLIC_OPENWEATHERMAP_API_KEY in your environment variables.",
-        duration: 10000, // Show for 10 seconds
+        description: apiKeyErrorMsg,
+        duration: 10000,
       });
-      setError("API Key is missing. Please contact support or check console.");
+      setError(apiKeyErrorMsg);
     }
   }, [toast]);
 
   const handleCitySelect = async (city: CitySuggestion) => {
     setIsLoading(true);
     setError(null);
-    setWeatherData(null); // Clear previous data
-    setSelectedCityName(city.name); // Store city name for display
+    setWeatherData(null); 
+    setSelectedCityName(city.name); 
+    
     try {
-      const data = await fetchWeatherData(city.lat, city.lon);
-      if (data.cod !== 200 && data.message) { // OpenWeatherMap API returns cod 200 on success
-        throw new Error(data.message);
+      // Use lat and lon for more precise lookup with WeatherAPI.com
+      const query = `${city.lat},${city.lon}`;
+      const data = await fetchWeatherData(query);
+
+      if (data.error) {
+        throw new Error(data.error.message);
       }
       setWeatherData(data);
     } catch (err) {
@@ -70,7 +74,7 @@ export default function HomePage() {
         <CitySearchForm onCitySelect={handleCitySelect} isFetchingWeather={isLoading} />
 
         {isLoading && (
-          <div className="flex flex-col items-center justify-center p-10 bg-white/10 dark:bg-black/10 backdrop-blur-sm rounded-xl shadow-md">
+          <div className="flex flex-col items-center justify-center p-10 bg-card/80 dark:bg-card/70 backdrop-blur-sm rounded-xl shadow-lg">
             <svg className="animate-spin h-12 w-12 text-primary mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -80,7 +84,7 @@ export default function HomePage() {
         )}
 
         {error && !isLoading && (
-           <div className="flex flex-col items-center justify-center p-10 bg-destructive/10 dark:bg-destructive/20 backdrop-blur-sm rounded-xl shadow-md text-destructive-foreground dark:text-destructive">
+           <div className="flex flex-col items-center justify-center p-10 bg-destructive/20 dark:bg-destructive/30 backdrop-blur-sm rounded-xl shadow-lg text-destructive dark:text-destructive-foreground">
             <WifiOff size={48} className="mb-4" />
             <p className="text-xl font-semibold">Oops! Something went wrong.</p>
             <p className="text-md">{error}</p>
@@ -92,14 +96,14 @@ export default function HomePage() {
         )}
 
         {!isLoading && !error && !weatherData && (
-           <div className="flex flex-col items-center justify-center p-10 bg-white/10 dark:bg-black/10 backdrop-blur-sm rounded-xl shadow-md">
+           <div className="flex flex-col items-center justify-center p-10 bg-card/80 dark:bg-card/70 backdrop-blur-sm rounded-xl shadow-lg">
             <CloudSun size={64} className="text-primary/70 mb-4" />
             <p className="text-xl text-foreground/70">Enter a city to get the latest weather forecast.</p>
           </div>
         )}
       </main>
       <footer className="mt-12 text-center text-sm text-foreground/60">
-        <p>&copy; {new Date().getFullYear()} WeatherWise. Powered by OpenWeatherMap.</p>
+        <p>&copy; {new Date().getFullYear()} WeatherWise. Powered by WeatherAPI.com</p>
       </footer>
     </div>
   );
