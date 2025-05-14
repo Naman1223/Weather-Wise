@@ -52,6 +52,7 @@ The project follows a standard Next.js App Router structure:
 *   `src/types/`: TypeScript type definitions.
 *   `public/`: Static assets (if any).
 *   `.env.local.example`: Example for environment variable setup.
+*   `out/`: This directory will be generated after running `npm run build` and will contain the static HTML, CSS, and JavaScript files for deployment.
 
 ## Getting Started
 
@@ -101,8 +102,8 @@ The project follows a standard Next.js App Router structure:
 In the project directory, you can run:
 
 *   `npm run dev`: Runs the app in development mode with Turbopack.
-*   `npm run build`: Builds the app for production.
-*   `npm run start`: Starts a production server (after building).
+*   `npm run build`: Builds the app for production. This will generate a static export in the `out/` directory.
+*   `npm run start`: Starts a production server (after building, not applicable for static export).
 *   `npm run lint`: Lints the codebase using Next.js's built-in ESLint configuration.
 *   `npm run typecheck`: Runs TypeScript type checking.
 *   `npm run genkit:dev`: Starts the Genkit development server (if Genkit flows are used).
@@ -111,6 +112,45 @@ In the project directory, you can run:
 ## API Used
 
 This application uses the [WeatherAPI.com](https://www.weatherapi.com/) service to fetch weather data and city suggestions. You must obtain a free API key from their website and configure it in the `.env.local` file as `NEXT_PUBLIC_WEATHERAPI_COM_API_KEY`.
+
+## Deploying to GitHub Pages
+
+This Next.js application has been configured for static export, making it suitable for deployment on GitHub Pages.
+
+1.  **Build the Project:**
+    Run the build command:
+    ```bash
+    npm run build
+    ```
+    This will generate a static version of your application in the `out` directory. This directory will contain the `index.html` file and other necessary static assets (CSS, JS).
+
+2.  **Push to GitHub:**
+    Commit and push the `out` directory (or its contents) to your GitHub repository. Make sure your repository is public if you're using a free GitHub account for GitHub Pages.
+    *Note: It's common to have a separate branch (e.g., `gh-pages`) for the contents of the `out` directory, or to use GitHub Actions to automate the build and deployment process.*
+
+3.  **Configure GitHub Pages:**
+    *   Go to your repository settings on GitHub.
+    *   Navigate to the "Pages" section.
+    *   Under "Build and deployment", select "Deploy from a branch" as the source.
+    *   Choose the branch you want to deploy from (e.g., `main` or `gh-pages`).
+    *   Select the folder containing your static files (usually `/out` or `/docs` if you move the contents of `out` to a `docs` folder in the root of your deployment branch).
+    *   Save the changes. GitHub will build and deploy your site.
+
+4.  **(Optional) Configure `basePath` for Project Sites:**
+    If your GitHub Pages site is a project site (e.g., `https://<username>.github.io/<repository-name>/`), you will need to configure the `basePath` in your `next.config.ts` file.
+    For example, if your repository is named `my-weather-app`, you would add:
+    ```javascript
+    // next.config.ts
+    const nextConfig = {
+      output: 'export',
+      basePath: '/my-weather-app', // Set this to your repository name
+      // ... other configurations
+    };
+    ```
+    After adding `basePath`, you'll need to rebuild (`npm run build`) and redeploy. Links and asset paths will then be prefixed correctly.
+
+5.  **Access Your Site:**
+    Your site should be available at `https://<username>.github.io/<repository-name>/` (if `basePath` is set for a project site) or `https://<username>.github.io/` (if it's a user/organization site and deployed from the root of the `main` branch, for example).
 
 ## Contributing
 
